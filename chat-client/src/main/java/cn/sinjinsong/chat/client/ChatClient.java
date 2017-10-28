@@ -82,10 +82,12 @@ public class ChatClient extends Frame {
      */
     private void initNetWork() {
         try {
+            // 开启一个Selector
             selector = Selector.open();
             clientChannel = SocketChannel.open(new InetSocketAddress("127.0.0.1", 9000));
             //设置客户端为非阻塞模式
             clientChannel.configureBlocking(false);
+            // 注册到Selector上并关联OP_READ事件
             clientChannel.register(selector, SelectionKey.OP_READ);
             buf = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE);
             login();
@@ -112,6 +114,7 @@ public class ChatClient extends Frame {
                         .timestamp(System.currentTimeMillis())
                         .build(), password.getBytes(charset));
         try {
+            // 把登录的数据写到Channel中去
             clientChannel.write(ByteBuffer.wrap(ProtoStuffUtil.serialize(message)));
         } catch (IOException e) {
             e.printStackTrace();
@@ -220,12 +223,17 @@ public class ChatClient extends Frame {
             try {
                 while (connected) {
                     int size = 0;
-                    selector.select();
+                    int readChannels = selector.select();
+                    if (readChannels < 0){
+                        continue;
+                    }
+
                     for (Iterator<SelectionKey> it = selector.selectedKeys().iterator(); it.hasNext(); ) {
                         SelectionKey selectionKey = it.next();
-                        it.remove();
+                        it.remove(); // 删除事件，防止重复
                         if (selectionKey.isReadable()) {
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            // 把数据读取到ByteBuffer中，并把Buffer转换为读模式
                             while ((size = clientChannel.read(buf)) > 0) {
                                 buf.flip();
                                 baos.write(buf.array(), 0, size);
@@ -244,6 +252,10 @@ public class ChatClient extends Frame {
             }
         }
 
+        /**
+         * 处理服务端返回的消息
+         * @param response
+         */
         private void handleResponse(Response response) {
             System.out.println(response);
             ResponseHeader header = response.getHeader();
