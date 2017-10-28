@@ -34,6 +34,7 @@ public class LoginMessageHandler extends MessageHandler {
         String password = new String(message.getBody(),PromptMsgProperty.charset);
         try {
             if (userManager.login(clientChannel, username, password)) {
+                // 序列化响应的消息，准备发给客户端
                 byte[] response = ProtoStuffUtil.serialize(
                         new Response(
                                 ResponseHeader.builder()
@@ -41,7 +42,9 @@ public class LoginMessageHandler extends MessageHandler {
                                         .sender(message.getHeader().getSender())
                                         .timestamp(message.getHeader().getTimestamp())
                                         .responseCode(ResponseCode.LOGIN_SUCCESS.getCode()).build(),
+                                // 用到了原子类的自增，统计当前客户端的人数
                                 String.format(PromptMsgProperty.LOGIN_SUCCESS,onlineUsers.incrementAndGet()).getBytes(PromptMsgProperty.charset)));
+                // 把response消息写到Channel中
                 clientChannel.write(ByteBuffer.wrap(response));
                 //连续发送信息不可行,必须要暂时中断一下
                 //粘包问题
@@ -61,6 +64,7 @@ public class LoginMessageHandler extends MessageHandler {
                         new Response(
                                 ResponseHeader.builder()
                                         .type(ResponseType.PROMPT)
+                                        // 登录失败
                                         .responseCode(ResponseCode.LOGIN_FAILURE.getCode())
                                         .sender(message.getHeader().getSender())
                                         .timestamp(message.getHeader().getTimestamp()).build(),
