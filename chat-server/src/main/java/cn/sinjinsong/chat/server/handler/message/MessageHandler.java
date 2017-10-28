@@ -26,6 +26,7 @@ public abstract class MessageHandler {
             if (channel instanceof SocketChannel) {
                 SocketChannel dest = (SocketChannel) channel;
                 if (dest.isConnected()) {
+                    // 将数据写入到SocketChannel中
                     dest.write(ByteBuffer.wrap(data));
                 }
             }
