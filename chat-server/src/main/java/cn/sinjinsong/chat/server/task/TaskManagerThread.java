@@ -39,8 +39,10 @@ public class TaskManagerThread extends Thread {
     }
 
     public void shutdown() {
+        // 关闭线程池
         taskPool.shutdown();
         crawlerPool.shutdown();
+        // 设置当前线程为中断状态
         Thread.currentThread().interrupt();
     }
 
