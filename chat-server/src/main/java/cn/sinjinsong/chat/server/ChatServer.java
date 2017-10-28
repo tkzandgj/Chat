@@ -103,6 +103,7 @@ public class ChatServer {
                     e.printStackTrace();
                 }
             } finally {
+                // 中断当前线程
                 super.interrupt();
             }
         }
@@ -110,7 +111,7 @@ public class ChatServer {
         @Override
         public void run() {
             try {
-                //如果有一个及以上的客户端的数据准备就绪
+                //如果有一个及以上的客户端的数据准备就绪   判断当前线程是否已经中断
                 while (!Thread.currentThread().isInterrupted()) {
                     //当注册的事件到达时，方法返回；否则,该方法会一直阻塞  
                     selector.select();
@@ -165,7 +166,7 @@ public class ChatServer {
             SocketChannel client = serverSocketChannel.accept();
             // 接收的客户端也要切换为非阻塞模式
             client.configureBlocking(false);
-            // 监控客户端的读操作是否就绪
+            // 监控客户端的读操作是否就绪   注册channel   并附上OP_READ事件
             client.register(selector, SelectionKey.OP_READ);
             log.info("服务器连接客户端:{}",client);
         } catch (IOException e) {
@@ -175,6 +176,7 @@ public class ChatServer {
 
     /**
      * 处于线程池中的线程会随着线程池的shutdown方法而关闭
+     * 读取事件的线程（读取客户端发送的数据）
      */
     private class ReadEventHandler implements Runnable {
 
@@ -205,6 +207,12 @@ public class ChatServer {
                 log.info("读取完毕，继续监听");
                 //继续监听读取事件
                 key.interestOps(key.interestOps() | SelectionKey.OP_READ);
+                /**
+                 * 某个线程调用select()方法后阻塞了，即使没有通道已经就绪，也有办法让其从select()方法返回。只要让其他线程在第一个
+                 * 线程调用select()方法的那个对象上调用Selector.wakeup()方法即可。阻塞在select()方法上的线程会立马返回。
+                 *
+                 * 如果有其他线程调用了wakeup()方法，但当前没有线程阻塞在select()方法上，下个调用select()方法的线程会立即“醒来（wakeup）”
+                 */
                 key.selector().wakeup();
                 byte[] bytes = baos.toByteArray();
                 baos.close();
