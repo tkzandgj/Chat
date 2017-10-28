@@ -51,3 +51,4 @@
     - @Log4j ：注解在类上；为类提供一个 属性名为log 的 log4j 日志对象
     - @NoArgsConstructor：注解在类上；为类提供一个无参的构造方法
     - @AllArgsConstructor：注解在类上；为类提供一个全参的构造方法
+    - @Builder ：用在类、构造器、方法上，为你提供复杂的builder APIs, 让你可以像如下方式一样调用Person.builder().name("Adam Savage").city("San Francisco").job("My").build();
