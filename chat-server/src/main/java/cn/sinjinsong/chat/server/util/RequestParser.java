@@ -10,7 +10,13 @@ import java.util.Map;
  * Created by SinjinSong on 2017/5/26.
  */
 public class RequestParser {
-    
+
+    /**
+     * 解析url中的参数
+     * https://www.baidu.com/request ? username=XXXX & password=XXXX
+     * @param rawURL
+     * @return
+     */
     public static Request parse(String rawURL){
         String[] slices = rawURL.split("\\?");
         Map<String,String> params = null;
@@ -27,5 +33,15 @@ public class RequestParser {
             }
         }
         return new Request(slices[0],params);
+    }
+
+
+    public static void main(String[] args){
+        String str = "https://www.baidu.com/request ? username=XXXX & password=XXXX";
+        Request request = RequestParser.parse(str);
+        Map<String, String> params = request.getParams();
+        for (Map.Entry<String, String> map : params.entrySet()){
+            System.out.println(map.getKey() + " = " + map.getValue());
+        }
     }
 }
