@@ -54,7 +54,7 @@ public class CrawlImageTaskHandler extends BaseTaskHandler {
             completionService.submit(new ImageThread(url, manager));
         }
         List<byte[]> result = new ArrayList<>();
-        //取出完成了的任务结果
+        //取出完成了的任务结果   主线程总是能够拿到最先完成的任务并返回，不用管加入线程池的顺序
         byte[] image;
         for (int i = 0; i < urls.size(); i++) {
             Future<byte[]> future = completionService.take();
